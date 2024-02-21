@@ -13,6 +13,7 @@ from src.models.engine_ai import EngineAI, CONST_MODEL, DATASET
     - Hiển thị danh sách ảnh
     - Chọn Model và Dataset
     - Action: Open, Predict, Train, Save
+    - base_master: Self@CompBody
 '''
 
 class PageLeft2(ScrolledFrame):

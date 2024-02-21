@@ -10,6 +10,7 @@ from ttkbootstrap.scrolled import ScrolledFrame
 '''
     Class Page1:
     - Biến Đổi ảnh
+    - base_master: Self@CompBody
 '''
 class PageLeft(tb.Frame):
     def __init__(self, master=None, base_master=None, **kw):

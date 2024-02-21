@@ -10,6 +10,7 @@ from ttkbootstrap.scrolled import ScrolledFrame
 '''
     Page Right 2
     - Hiển thị ảnh gốc và ảnh sau khi xử lý qua model AI
+    - base_master: Self@CompBody
 '''
 
 class PageRigt2(ScrolledFrame):
