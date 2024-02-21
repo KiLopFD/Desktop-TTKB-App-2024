@@ -52,7 +52,7 @@ class PageLeft(tb.Frame):
         self.create_widgets()
 
         # Override style
-        master.config(width=500)
+        master.config(width=700)
 
     def create_widgets(self):
         # Create Scroll Image
@@ -62,7 +62,23 @@ class PageLeft(tb.Frame):
         self.scrollframe_imgs.pack(fill=X)
         # Set global variable
         self.base_master.pl1_scrollframe_imgs = self.scrollframe_imgs
-
+        # Create Resolution Adjust
+        self.lbl_frame_res = tb.LabelFrame(self.scrollframe, text='Điều chỉnh kích cỡ ảnh', bootstyle='info', padding=10)
+        self.lbl_frame_res.pack(fill=X, pady=5)
+        row = tb.Frame(self.lbl_frame_res, bootstyle='dark', padding=5)
+        row.pack(fill=X)
+        height_var = tb.IntVar()
+        width_var = tb.IntVar()
+        self.entry_height = tb.Entry(row, bootstyle='info', textvariable=height_var)
+        self.entry_height.pack(side=LEFT, padx=5)
+        self.lbl_x = tb.Label(row, text='x', bootstyle='info')
+        self.lbl_x.pack(side=LEFT)
+        self.entry_width = tb.Entry(row, bootstyle='info', textvariable=width_var)
+        self.entry_width.pack(side=LEFT, padx=5)
+        # Button adjust size image
+        self.btn_res = tb.Button(self.lbl_frame_res, text='Điều chỉnh', bootstyle='info', command=lambda: self.base_master.adjust_size_image(height_var.get(), width_var.get()))
+        self.btn_res.pack(side=LEFT, padx=10)
+        
     def show_all_image(self, list_paths):
         cnt = 0
         for path in list_paths:

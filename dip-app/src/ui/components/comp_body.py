@@ -11,6 +11,7 @@ import cv2
 import os
 from src.ui.pages.page_right_2 import PageRigt2
 from src.ui.pages.page_left_2 import PageLeft2
+from ttkbootstrap.scrolled import ScrolledFrame
 
 class CompBody(tb.Frame):
 
@@ -19,6 +20,8 @@ class CompBody(tb.Frame):
         self.master = master
         self.base_master = base_master
         self.pack(expand=YES, fill=BOTH)
+        # Image Size:
+        self.image_size = (200, 200)
         # Set UI
         self.attr_input = [
             {
@@ -114,6 +117,30 @@ class CompBody(tb.Frame):
                         "name_var": tb.Scale,
                     }
                 ]
+            },
+            {
+                "label": "filter_laplacian",
+                "name": "Lọc Laplacian",
+                "check_var": tb.Checkbutton,
+                "category": [
+                    {
+                        "label": "filter_size",
+                        "name": "Giá Trị",
+                        "name_var": tb.Scale,
+                    }
+                ]
+            },
+            {
+                "label": "filter_sobel",
+                "name": "Lọc Sobel",
+                "check_var": tb.Checkbutton,
+                "category": [
+                    {
+                        "label": "filter_size",
+                        "name": "Giá Trị",
+                        "name_var": tb.Scale,
+                    }
+                ]
             }
         ]
         self.acction_input = [
@@ -157,6 +184,8 @@ class CompBody(tb.Frame):
         self.attr_input[5]['category'][0]['name_var'].bind("<ButtonRelease-1>", self.apply_gaussian_filter)
         self.attr_input[5]['category'][1]['name_var'].bind("<ButtonRelease-1>", self.apply_gaussian_filter)
         self.attr_input[6]['category'][0]['name_var'].bind("<ButtonRelease-1>", self.apply_histogram_filter)
+        self.attr_input[7]['category'][0]['name_var'].bind("<ButtonRelease-1>", self.apply_laplacian_filter)
+        self.attr_input[8]['category'][0]['name_var'].bind("<ButtonRelease-1>", self.apply_sobel_filter)
 
     def create_widgets(self):
         # Create Frame Left:
@@ -193,10 +222,14 @@ class CompBody(tb.Frame):
         self.nb_right.add(self.page_right_2, text='Kết Quả Traning')
         PageRigt2(self.page_right_2, self)
         # -------------------------------------
-        self.ctn_top = tb.LabelFrame(self.page_right_1, text='Ảnh Gốc', bootstyle='info', height=300, padding=20)
-        self.ctn_top.pack(fill=BOTH, side=TOP)
-        self.ctn_bottom = tb.LabelFrame(self.page_right_1, text='Ảnh Kết Quả', bootstyle='danger', height=300, padding=20)
-        self.ctn_bottom.pack(fill=BOTH, side=BOTTOM)
+        lbl_frame_ctn_top = tb.LabelFrame(self.page_right_1, text='Ảnh Gốc', bootstyle='info', padding=10)
+        lbl_frame_ctn_top.pack(fill=X, pady=5)
+        self.ctn_top = ScrolledFrame(lbl_frame_ctn_top, padding=5, height=300)
+        self.ctn_top.pack(fill=X, side=TOP)
+        lbl_frame_ctn_bottom = tb.LabelFrame(self.page_right_1, text='Ảnh Kết Quả', bootstyle='info', padding=10)
+        lbl_frame_ctn_bottom.pack(fill=X, pady=5)
+        self.ctn_bottom = ScrolledFrame(lbl_frame_ctn_bottom, padding=5, height=300)
+        self.ctn_bottom.pack(fill=X, side=BOTTOM)
 
     def open_image(self):
         all_path_images = askopenfilenames(filetypes=[("Image files", "*.png;*.jpg;*.jpeg")] )
@@ -204,7 +237,7 @@ class CompBody(tb.Frame):
 
     def show_origin_image(self, path_image):
         self.image = Image.open(path_image)
-        self.image = self.image.resize((250, 250))
+        self.image = self.image.resize(self.image_size)
         self.origin_photo = ImageTk.PhotoImage(self.image)
         if hasattr(self, 'lbl_origin_img'):
             self.lbl_origin_img.destroy()
@@ -217,7 +250,7 @@ class CompBody(tb.Frame):
         return image.resize(size)
 
     def show_result_image(self, image: Image.Image):
-        self.image = image.resize((250, 250))
+        self.image = image.resize(self.image_size)
         self.res_photo = ImageTk.PhotoImage(self.image)
         if hasattr(self, 'lbl_res_img'):
             self.lbl_res_img.destroy()
@@ -350,7 +383,34 @@ class CompBody(tb.Frame):
         self.show_result_image(equalized_image.convert('RGB'))
 
 
+    def apply_laplacian_filter(self, *args, **kwargs):
+        # Lấy giá trị từ scale
+        scale = self.attr_input[7]['category'][0]['name_var'].get() / 100
+
+        # Áp dụng bộ lọc Laplacian
+        laplacian_image = self.image.filter(ImageFilter.FIND_EDGES)
+        laplacian_image = ImageEnhance.Contrast(laplacian_image).enhance(scale)
+
+        # Cập nhật ảnh kết quả
+        self.image = laplacian_image
+
+        # Hiển thị ảnh kết quả
+        self.show_result_image(laplacian_image)
     
+    def apply_sobel_filter(self, *args, **kwargs):
+        # Lấy giá trị từ scale
+        scale = self.attr_input[8]['category'][0]['name_var'].get() / 100
+
+        # Áp dụng bộ lọc Sobel
+        sobel_image = self.image.filter(ImageFilter.FIND_EDGES)
+        sobel_image = ImageEnhance.Contrast(sobel_image).enhance(scale)
+
+        # Cập nhật ảnh kết quả
+        self.image = sobel_image
+
+        # Hiển thị ảnh kết quả
+        self.show_result_image(sobel_image)
+        
     # -------------------------------------
 
     
@@ -384,13 +444,21 @@ class CompBody(tb.Frame):
 
     def save_image(self):
         dir_save = askdirectory()
-        self.image = self.image.resize((1980, 1080))
+        self.image = self.image.resize(self.image_size)
         if 'result' in os.listdir(dir_save):
             self.image.save(f"{dir_save}/result_{len(os.listdir(dir_save))}.png")
         else:
             os.mkdir(f"{dir_save}/result")
             self.image.save(f"{dir_save}/result_{len(os.listdir(dir_save))}.png")
         print('Save Image')
+
+    def adjust_size_image(self, height, width):
+        self.image_size = (height, width)
+        self.image = Image.open(self.path_image)
+        # self.show_origin_image(self.path_image)
+        self.show_origin_image(self.path_image)
+        self.show_result_image(self.image)
+        print(height, width)
 
 
                                                         

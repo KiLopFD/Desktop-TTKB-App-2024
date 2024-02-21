@@ -3,6 +3,13 @@ from ttkbootstrap.constants import *
 from src.ui.config.window import origin_window
 from src.ui.components.comp_header import CompHeader
 from src.ui.components.comp_body import CompBody
+from src.ui.components.comp_footer import CompFooter
+
+'''
+    Class DipAppUi:
+    - origin_window: tb.Window
+    - my_style: tb.Style
+'''
 
 class DipAppUi(tb.Frame):
 
@@ -19,7 +26,7 @@ class DipAppUi(tb.Frame):
 
     def create_widgets(self):
         # Create Header:
-        self.ctn_header = tb.Frame(self, bootstyle='dark', height=50, padding=5)
+        self.ctn_header = tb.Frame(self, bootstyle='dark', height=50)
         self.ctn_header.pack(side=TOP, fill=X)
         CompHeader(self.ctn_header, self)
         tb.Separator(self.ctn_header, orient=HORIZONTAL).pack(fill=X)
@@ -31,6 +38,8 @@ class DipAppUi(tb.Frame):
         # Create Footer:
         self.ctn_footer = tb.Frame(self, bootstyle='dark', height=50)
         self.ctn_footer.pack(side=BOTTOM, fill=X)
+        CompFooter(self.ctn_footer, self)
+
 
 
 
