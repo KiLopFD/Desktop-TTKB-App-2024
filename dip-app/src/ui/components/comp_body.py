@@ -1,7 +1,7 @@
 from src.ui.export_module import tb
 from ttkbootstrap.constants import *
 from src.ui.config.window import BASE_THEME, origin_window
-from tkinter.filedialog import askopenfilename, askdirectory
+from tkinter.filedialog import askopenfilename, askdirectory, askopenfilenames
 from PIL import Image, ImageTk, ImageFilter, ImageEnhance, ImageOps
 import numpy as np
 from time import sleep
@@ -14,9 +14,10 @@ from src.ui.pages.page_left_2 import PageLeft2
 
 class CompBody(tb.Frame):
 
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, base_master, **kwargs):
         super().__init__(master, **kwargs, bootstyle='warning')
         self.master = master
+        self.base_master = base_master
         self.pack(expand=YES, fill=BOTH)
         # Set UI
         self.attr_input = [
@@ -198,8 +199,8 @@ class CompBody(tb.Frame):
         self.ctn_bottom.pack(fill=BOTH, side=BOTTOM)
 
     def open_image(self):
-        self.path_image = askopenfilename(filetypes=[("Image files", "*.png;*.jpg;*.jpeg")] )
-        self.show_origin_image(self.path_image)
+        all_path_images = askopenfilenames(filetypes=[("Image files", "*.png;*.jpg;*.jpeg")] )
+        self.show_all_image(all_path_images)
 
     def show_origin_image(self, path_image):
         self.image = Image.open(path_image)

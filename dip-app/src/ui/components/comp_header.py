@@ -49,7 +49,7 @@ class CompHeader(tb.Frame):
         origin_window.style.theme_use(theme)
 
     def implementation_center(self):
-        self.label_name_app = tb.Label(self.frame_center, text='Alex Dev No CopyRight', font=('Helvetica', 15))
+        self.label_name_app = tb.Label(self.frame_center, text='Dev: Anh Tú - DIP Project - NoCopyRightSoftware', font=('Helvetica', 14))
         self.label_name_app.pack()
 
         

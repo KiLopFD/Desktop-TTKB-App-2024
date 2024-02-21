@@ -3,6 +3,7 @@ from ttkbootstrap.constants import *
 from datetime import datetime
 from app.db.setup import Account
 from app.utils.validations.form_validation import FormValidation
+from ttkbootstrap.toast import ToastNotification
 
 
 class PageReg(tb.Frame):
@@ -21,9 +22,15 @@ class PageReg(tb.Frame):
         # Login Group
         frame_log = tb.Frame(self)
         frame_log.pack(fill=X, pady=30, side=TOP)
+        # Create Global Label Frame For Each Field Using Base Master
+        self.base_master.lbl_frame_reg = {}
+        #--------------------------------
         for field in self.base_master.reg_input_fields:
             lbl_frame = tb.LabelFrame(frame_log, text=field['name'])
-            lbl_frame.pack(fill=X)
+            lbl_frame.pack(fill=X, pady=4)
+            # Update the label frame to the base master
+            self.base_master.lbl_frame_reg[field['label']] = lbl_frame
+            #--------------------------------
             if field['label'] == 'phone':
                 self.create_menu_phone(lbl_frame)
                 field['widget'] = tb.Entry(lbl_frame, textvariable=field['var'])
@@ -53,7 +60,8 @@ class PageReg(tb.Frame):
         lbl_footer.pack()
 
         # Validation
-
+        FormValidation.base_master = self.base_master
+        FormValidation.check_all_field(self.base_master.get_all_reg_widgets())
 
 
     def create_menu_phone(self, master):
@@ -72,6 +80,15 @@ class PageReg(tb.Frame):
         print(self.selected_phone.get())
 
     def reg_account(self):
+        if False in FormValidation.state_validate.values():
+            ToastNotification(
+                title='Thông Báo',
+                message='Vui lòng kiểm tra lại thông tin',
+                duration=3000,
+                bootstyle='danger',
+                alert=True,
+            ).show_toast()
+            return
         account = Account(
             username=self.base_master.reg_input_fields[0]['var'].get(),
             fullname=self.base_master.reg_input_fields[1]['var'].get(),
@@ -82,6 +99,10 @@ class PageReg(tb.Frame):
             role='user'
         )
         self.base_master.account_dao.add(account)
+        # Reset all fields
+        for field in self.base_master.reg_input_fields:
+            field['var'].set('')
+            self.base_master.lbl_frame_reg[field['label']].config(text=field['name'], bootstyle='default')
         self.base_master.nb.select(0)
         print('Registed', account)
 

@@ -8,6 +8,12 @@ from time import sleep
 from ttkbootstrap.scrolled import ScrolledFrame
 from src.models.engine_ai import EngineAI, CONST_MODEL, DATASET
 
+'''
+    Page Left 2
+    - Hiển thị danh sách ảnh
+    - Chọn Model và Dataset
+    - Action: Open, Predict, Train, Save
+'''
 
 class PageLeft2(ScrolledFrame):
 
@@ -90,6 +96,7 @@ class PageLeft2(ScrolledFrame):
             cnt += 1
 
     def show_img_detail(self, path):
+        # Get from /src/ui/pages/page_right_2.py
         self.base_master.show_img_detail(path)
 
 
@@ -97,6 +104,7 @@ class PageLeft2(ScrolledFrame):
         print(model)
         self.engine_model = EngineAI()
         self.engine_model.load_model(model)
+        # Get from /src/ui/pages/page_right_2.py
         self.base_master.engine_model = self.engine_model
     
     def predict_img(self):
@@ -105,6 +113,7 @@ class PageLeft2(ScrolledFrame):
         im_array = results[0].plot()
         pil_img = Image.fromarray(im_array[..., ::-1])
         self.base_master.dip_res_img = pil_img
+        # Get from /src/ui/pages/page_right_2.py
         self.base_master.show_img_predict(pil_img)
             
     def train_img(self):
@@ -122,6 +131,7 @@ class PageLeft2(ScrolledFrame):
         name_model = file_path.split('/')[-1]
         self.engine_model = EngineAI()
         self.engine_model.load_model(file_path)
+        # Set global variable
         self.base_master.engine_model = self.engine_model
         row = tb.Frame(self.scrollframe_models, bootstyle='dark', padding=5)
         row.pack(fill=X)

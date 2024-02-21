@@ -26,7 +26,7 @@ class DipAppUi(tb.Frame):
         # Create Body:
         self.ctn_body = tb.Frame(self, style='primary.TFrame')
         self.ctn_body.pack(expand=YES, fill=BOTH)
-        CompBody(self.ctn_body)
+        CompBody(self.ctn_body, self)
         tb.Separator(self.ctn_body, orient=HORIZONTAL).pack(fill=X)
         # Create Footer:
         self.ctn_footer = tb.Frame(self, bootstyle='dark', height=50)

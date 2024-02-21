@@ -90,3 +90,14 @@ class AuthUI(tb.Frame):
 
     def new_window(self):
         ...
+
+    def get_all_reg_widgets(self):
+        return {
+            'username': self.reg_input_fields[0]['widget'],
+            'fullname': self.reg_input_fields[1]['widget'],
+            'email': self.reg_input_fields[2]['widget'],
+            'phone': self.reg_input_fields[3]['widget'],
+            'birthday': self.reg_input_fields[4]['widget'],
+            'password': self.reg_input_fields[5]['widget']
+        }
+    

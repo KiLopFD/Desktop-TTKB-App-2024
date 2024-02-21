@@ -7,6 +7,11 @@ import numpy as np
 from time import sleep
 from ttkbootstrap.scrolled import ScrolledFrame
 
+'''
+    Page Right 2
+    - Hiển thị ảnh gốc và ảnh sau khi xử lý qua model AI
+'''
+
 class PageRigt2(ScrolledFrame):
 
     def __init__(self, master, base_master, **kwargs):
@@ -33,7 +38,7 @@ class PageRigt2(ScrolledFrame):
     def show_img_detail(self, path):
         print('Show img detail')
         img = Image.open(path)
-        tmp_img = img.resize((img.width*4//9, img.height*4//16))
+        tmp_img = img.resize((200, 200))
         photo = ImageTk.PhotoImage(tmp_img)
         if hasattr(self, 'origin_lbl'):
             self.origin_lbl.destroy()
@@ -44,7 +49,7 @@ class PageRigt2(ScrolledFrame):
 
     def show_img_predict(self, img):
         print('Show img predict')
-        tmp_img = img.resize((img.width*4//9, img.height*4//16))
+        tmp_img = img.resize((200, 200))
         photo = ImageTk.PhotoImage(tmp_img)
         if hasattr(self, 'predict_lbl'):
             self.predict_lbl.destroy()
