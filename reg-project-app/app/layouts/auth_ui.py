@@ -1,8 +1,7 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
-from app.pages.auth_ui.page_reg import PageReg
-from app.pages.auth_ui.page_log import PageLog
-from app.db.dao.account_dao import AccountDao
+from app.pages.main import PageLog, PageReg
+from app.db.main import AccountDao
 
 class AuthUI(tb.Frame):
 

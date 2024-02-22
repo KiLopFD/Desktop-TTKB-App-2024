@@ -1,7 +1,7 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from datetime import datetime
-from app.db.setup import Account
+from app.db.main import Account
 from app.utils.validations.form_validation import FormValidation
 from ttkbootstrap.toast import ToastNotification
 
@@ -21,7 +21,7 @@ class PageReg(tb.Frame):
     def create_widgets(self):
         # Login Group
         frame_log = tb.Frame(self)
-        frame_log.pack(fill=X, pady=30, side=TOP)
+        frame_log.pack(fill=X, pady=15, side=TOP)
         # Create Global Label Frame For Each Field Using Base Master
         self.base_master.lbl_frame_reg = {}
         #--------------------------------
