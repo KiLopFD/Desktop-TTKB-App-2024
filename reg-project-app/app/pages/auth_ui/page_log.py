@@ -4,7 +4,7 @@ from ttkbootstrap.constants import *
 class PageLog(tb.Frame):
 
     def __init__(self, master, base_master,**kwargs):
-        super().__init__(master, **kwargs, bootstyle='dark', padding=10)
+        super().__init__(master, **kwargs, padding=10)
         self.master = master
         self.base_master = base_master
         self.pack(expand=True, fill=tb.BOTH)
@@ -53,6 +53,8 @@ class PageLog(tb.Frame):
             # Open main window
             from app.configs.info_window import MAIN_UI_WINDOW
             new_window = tb.Toplevel(**MAIN_UI_WINDOW)
+            from app.layouts.main_ui import MainUI
+            MainUI(new_window, find_user[0])
             new_window.mainloop()
             return
 

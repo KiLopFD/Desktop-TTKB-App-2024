@@ -6,4 +6,6 @@
 from app.pages.auth_ui.page_log import PageLog
 from app.pages.auth_ui.page_reg import PageReg
 # --------------------------------
+# Pages for Main UI
+from app.pages.main_ui.page_project import PageProject
 

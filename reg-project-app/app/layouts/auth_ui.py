@@ -7,7 +7,7 @@ class AuthUI(tb.Frame):
 
     def __init__(self, master: tb.Window, **kwargs):
         # Set master window
-        super().__init__(master, **kwargs, padding=50)
+        super().__init__(master, **kwargs)
         self.master = master
         self.pack(expand=True, fill=BOTH)
         # Variables
@@ -67,6 +67,8 @@ class AuthUI(tb.Frame):
         self.account_dao = AccountDao()
         # Create widgets
         self.create_widgets()
+        # Overide Style
+        self.overide_style()
     
 
 
@@ -100,3 +102,5 @@ class AuthUI(tb.Frame):
             'password': self.reg_input_fields[5]['widget']
         }
     
+    def overide_style(self):
+        self.config(padding=30, height=50)

@@ -9,7 +9,7 @@ from ttkbootstrap.toast import ToastNotification
 class PageReg(tb.Frame):
 
     def __init__(self, master, base_master,**kwargs):
-        super().__init__(master, **kwargs, bootstyle='dark', padding=10)
+        super().__init__(master, **kwargs, padding=10)
         self.master = master
         self.base_master = base_master
         self.pack(expand=True, fill=tb.BOTH)

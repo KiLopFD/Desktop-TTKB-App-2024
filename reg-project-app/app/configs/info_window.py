@@ -8,10 +8,10 @@
 '''
 AUTH_UI_WINDOW = {
     'title': 'Authentication',
-    'themename': 'vapor',
+    'themename': 'cyborg',
     'iconphoto': '',
     'size': (500, 900),
-    'position': (400, 100),
+    'position': (400, 50),
     'resizable': (True, True),
 }
 # After authentification, the user will be redirected to the main window
@@ -29,7 +29,7 @@ MAIN_UI_WINDOW = {
     'title': 'Main Window',
     'iconphoto': '',
     'size': (1500, 800),
-    'position': (300, 100),
+    'position': (300, 50),
     'resizable': (True, True),
 }
 
