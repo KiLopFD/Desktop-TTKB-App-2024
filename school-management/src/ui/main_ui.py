@@ -7,6 +7,7 @@ from src.db.dao.teacher_dao import TeacherDao
 from datetime import datetime
 from src.util.table_util import TableUtil
 from ttkbootstrap.tooltip import ToolTip
+from src.util.validation_util import FormValidation
 
 
 class MainUI(tb.Frame):
@@ -28,25 +29,35 @@ class MainUI(tb.Frame):
         # UI Input
         self.ui_input_field = [
             {
-                "label": "full_name",
+                "label": "fullname",
                 "name_label": "Họ và tên",
                 "name_var": tb.StringVar(),
+                "widget": None,
             },
             {
                 "label": "address",
                 "name_label": "Địa chỉ",
                 "name_var": tb.StringVar(),
+                "widget": None,
             },
             {
                 "label": "cmnd",
                 "name_label": "CMND",
                 "name_var": tb.StringVar(),
+                "widget": None,
             },
             {
                 "label": "birthday",
                 "name_label": "Ngày sinh",
                 "name_var": tb.StringVar(),
-            }
+                "widget": None,
+            },
+            {
+                "label": "phone",
+                "name_label": "Số điện thoại",
+                "name_var": tb.StringVar(),
+                "widget": None,
+            },
         ]
         #---------------------
         # Create widgets
@@ -56,6 +67,15 @@ class MainUI(tb.Frame):
         TableUtil.initialize_student_table(self, self.ctn_show_student, self.student_data)
         self.teacher_data = self.get_teacher_data()
         TableUtil.initialize_teacher_table(self, self.ctn_show_teacher, self.teacher_data)
+        # DAO
+        self.student_dao = StudentDao()
+        self.teacher_dao = TeacherDao()
+        #---------------------
+        # Validate
+        FormValidation.base_master = self
+        FormValidation.check_all_field(self.get_full_widget())
+        # Overide Style
+        self.overide_style()
 
     def get_student_data(self):
         return {
@@ -73,13 +93,16 @@ class MainUI(tb.Frame):
             ]
         }
     
+    def get_full_widget(self):
+        return dict(zip([field["label"] for field in self.ui_input_field], [field["widget"] for field in self.ui_input_field]))
+    
     def create_widgets(self):
         # Split into two frames
         self.create_frame()
         
     
     def create_frame(self):
-        self.frame_left = tb.Frame(self, height=500, width=400, bootstyle="dark")
+        self.frame_left = tb.Frame(self, width=400, bootstyle="dark")
         self.frame_left.pack(side="left", expand=YES, fill=BOTH)
         self.frame_right = tb.Frame(self, height=500, width=1000)
         self.frame_right.pack(side="right", expand=YES, fill=BOTH)
@@ -112,20 +135,20 @@ class MainUI(tb.Frame):
 
     def create_ui_frame_left(self):
         self.frame_left.configure(padding=10)
-        self.ctn_input = tb.LabelFrame(self.frame_left, text="Nhập thông tin", bootstyle="primary", padding=10)
+        self.ctn_input = tb.LabelFrame(self.frame_left, text="Nhập thông tin", bootstyle="dark", padding=10)
         self.ctn_input.pack(pady=10)
         # Create input
+        self.lbl_frame_reg = {}
         for input_field in self.ui_input_field:
-            self.row_input = tb.Frame(self.ctn_input)
-            self.row_input.pack(pady=5, fill=X)
-            self.label = tb.Label(self.row_input, text=input_field["name_label"], bootstyle="primary")
-            self.label.pack(side="left")
+            self.lbl_frame_reg[input_field["label"]] = tb.LabelFrame(self.ctn_input, text=input_field["name_label"], bootstyle="dark", padding=5)
+            self.lbl_frame_reg[input_field["label"]].pack(pady=3, fill=X)
             if input_field["label"] == "birthday":
-                self.dt_entry = tb.DateEntry(self.row_input,)
-                self.dt_entry.pack(side="right")
+                input_field["widget"] = tb.DateEntry(self.lbl_frame_reg[input_field["label"]], bootstyle="dark")
+                input_field["widget"].pack(fill=X)
             else:
-                self.entry = tb.Entry(self.row_input, textvariable=input_field["name_var"], bootstyle="primary")
-            self.entry.pack(side="right")
+                input_field["widget"] = tb.Entry(self.lbl_frame_reg[input_field["label"]], textvariable=input_field["name_var"], bootstyle="dark")
+                input_field["widget"].pack(fill=X)
+            
         # Create button group
         self.ctn_btn = tb.LabelFrame(self.frame_left, text="Chức năng", bootstyle="primary", padding=10)
         # Add Row ID
@@ -134,7 +157,7 @@ class MainUI(tb.Frame):
         self.label_id = tb.Label(self.ctn_id_update, text="ID", bootstyle="primary")
         self.label_id.pack(side="left")
         self.entry_id = tb.Entry(self.ctn_id_update, bootstyle="primary")
-        self.entry_id.pack(side="right")
+        self.entry_id.pack(side="left", padx=5)
         # ---------------------
         # Add Button Acitons
         self.ctn_btn.pack(pady=10, fill=X)
@@ -187,7 +210,7 @@ class MainUI(tb.Frame):
             name=self.ui_input_field[0]["name_var"].get(),
             address=self.ui_input_field[1]["name_var"].get(),
             cmnd=self.ui_input_field[2]["name_var"].get(),
-            birth_day=datetime.strptime(self.dt_entry.entry.get(), "%m/%d/%Y"),
+            birth_day=datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y"),
         )
         student_dao.add(student)
         print("Add student success", student)
@@ -195,13 +218,12 @@ class MainUI(tb.Frame):
         TableUtil.built_data_onchange(self, self.student_data, "student")
     
     def update_student(self):
-        student_dao = StudentDao()
-        student = student_dao.get_by_id(self.entry_id.get())
+        student = self.student_dao.get_by_id(self.entry_id.get())
         student.name = self.ui_input_field[0]["name_var"].get()
         student.address = self.ui_input_field[1]["name_var"].get()
         student.cmnd = self.ui_input_field[2]["name_var"].get()
-        student.birth_day = datetime.strptime(self.dt_entry.entry.get(), "%m/%d/%Y")
-        student_dao.update(student)
+        student.birth_day = datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y")
+        self.student_dao.update(student)
         print("Update student success", student)
         self.student_data = self.get_student_data()
         TableUtil.built_data_onchange(self, self.student_data, "student")
@@ -221,7 +243,7 @@ class MainUI(tb.Frame):
             name=self.ui_input_field[0]["name_var"].get(),
             address=self.ui_input_field[1]["name_var"].get(),
             cmnd=self.ui_input_field[2]["name_var"].get(),
-            birth_day=datetime.strptime(self.dt_entry.entry.get(), "%m/%d/%Y"),
+            birth_day=datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y"),
         )
         teacher_dao.add(teacher)
         print("Add teacher success", teacher)
@@ -234,7 +256,7 @@ class MainUI(tb.Frame):
         teacher.name = self.ui_input_field[0]["name_var"].get()
         teacher.address = self.ui_input_field[1]["name_var"].get()
         teacher.cmnd = self.ui_input_field[2]["name_var"].get()
-        teacher.birth_day = datetime.strptime(self.dt_entry.entry.get(), "%m/%d/%Y")
+        teacher.birth_day = datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y")
         teacher_dao.update(teacher)
         print("Update teacher success", teacher)
         self.teacher_data = self.get_teacher_data()
@@ -248,6 +270,8 @@ class MainUI(tb.Frame):
         self.teacher_data = self.get_teacher_data()
         TableUtil.built_data_onchange(self, self.teacher_data, "teacher")
 
+    def overide_style(self):
+        self.frame_left.config(width=400)
     
     
 
