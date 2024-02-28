@@ -16,8 +16,8 @@ class TableUtil:
             coldata=columns,
             rowdata=rows,
         )
-        self.student_table.pack(expand=YES, fill=BOTH)
-
+        self.student_table.pack(fill=BOTH, expand=True)
+        
     @staticmethod
     def initialize_teacher_table(self, master, data):
         columns = data["columns"]
@@ -28,8 +28,9 @@ class TableUtil:
             coldata=columns,
             rowdata=rows,
         )
-        self.teacher_table.pack(expand=YES, fill=BOTH)
+        self.teacher_table.pack(fill=BOTH, expand=True)
 
+        
     @staticmethod
     def built_data_onchange(self, data, table_type):
         if table_type == "teacher":

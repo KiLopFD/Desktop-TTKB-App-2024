@@ -141,6 +141,50 @@ class CompBody(tb.Frame):
                         "name_var": tb.Scale,
                     }
                 ]
+            },
+            {
+                "label": "filter_low_pass",
+                "name": "Lọc Low Pass",
+                "check_var": tb.Checkbutton,
+                "category": [
+                    {
+                        "label": "ideal_low_pass_filter",
+                        "name": "Ideal Low Pass Filter",
+                        "name_var": tb.Scale,
+                    },
+                    {
+                        "label": "butterworth_low_pass_filter",
+                        "name": "Butterworth Low Pass Filter",
+                        "name_var": tb.Scale,
+                    },
+                    {
+                        "label": "gaussian_low_pass_filter",
+                        "name": "Gaussian Low Pass Filter",
+                        "name_var": tb.Scale,
+                    }
+                ]
+            },
+            {
+                "label": "filter_high_pass",
+                "name": "Lọc High Pass",
+                "check_var": tb.Checkbutton,
+                "category": [
+                    {
+                        "label": "ideal_high_pass_filter",
+                        "name": "Ideal High Pass Filter",
+                        "name_var": tb.Scale,
+                    },
+                    {
+                        "label": "butterworth_high_pass_filter",
+                        "name": "Butterworth High Pass Filter",
+                        "name_var": tb.Scale,
+                    },
+                    {
+                        "label": "gaussian_high_pass_filter",
+                        "name": "Gaussian High Pass Filter",
+                        "name_var": tb.Scale,
+                    }
+                ]
             }
         ]
         self.acction_input = [
@@ -186,6 +230,12 @@ class CompBody(tb.Frame):
         self.attr_input[6]['category'][0]['name_var'].bind("<ButtonRelease-1>", self.apply_histogram_filter)
         self.attr_input[7]['category'][0]['name_var'].bind("<ButtonRelease-1>", self.apply_laplacian_filter)
         self.attr_input[8]['category'][0]['name_var'].bind("<ButtonRelease-1>", self.apply_sobel_filter)
+        self.attr_input[9]['category'][0]['name_var'].bind("<ButtonRelease-1>", self.apply_ideal_low_pass_filter)
+        self.attr_input[9]['category'][1]['name_var'].bind("<ButtonRelease-1>", self.apply_butterworth_low_pass_filter)
+        self.attr_input[9]['category'][2]['name_var'].bind("<ButtonRelease-1>", self.apply_gaussian_low_pass_filter)
+        self.attr_input[10]['category'][0]['name_var'].bind("<ButtonRelease-1>", self.apply_ideal_low_pass_filter)
+        self.attr_input[10]['category'][1]['name_var'].bind("<ButtonRelease-1>", self.apply_butterworth_low_pass_filter)
+        self.attr_input[10]['category'][2]['name_var'].bind("<ButtonRelease-1>", self.apply_gaussian_low_pass_filter)
 
     def create_widgets(self):
         # Create Frame Left:
@@ -237,6 +287,8 @@ class CompBody(tb.Frame):
 
     def show_origin_image(self, path_image):
         self.image = Image.open(path_image)
+        self.tmp_image = self.image.copy()
+        self.path_name = path_image
         self.image = self.image.resize(self.image_size)
         self.origin_photo = ImageTk.PhotoImage(self.image)
         if hasattr(self, 'lbl_origin_img'):
@@ -411,18 +463,372 @@ class CompBody(tb.Frame):
         # Hiển thị ảnh kết quả
         self.show_result_image(sobel_image)
         
+    def apply_butterworth_low_pass_filter(self, *args, **kwargs):
+        # Convert PIL Image to numpy array
+        img_array = np.array(self.tmp_image)
+
+        r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
+
+        r_filtered = self.apply_butterworth_low_pass_filter_channel(r)
+        g_filtered = self.apply_butterworth_low_pass_filter_channel(g)
+        b_filtered = self.apply_butterworth_low_pass_filter_channel(b)
+
+        filtered_image = np.stack((r_filtered, g_filtered, b_filtered), axis=2)
+
+        # Convert the numpy array back to a PIL Image
+        filtered_image = Image.fromarray(filtered_image.astype(np.uint8))
+
+        # Update the result image
+        self.tmp_image = filtered_image.copy()
+
+        # Display the filtered image
+        self.show_result_image(self.tmp_image)
+
+    def apply_butterworth_low_pass_filter_channel(self, channel):
+        # Perform FFT
+        f_shifted = np.fft.fftshift(np.fft.fft2(channel))
+        M, N = channel.shape
+        u = np.arange(0, M) - M/2
+        v = np.arange(0, N) - N/2
+        V, U = np.meshgrid(v, u)
+        D = np.sqrt(np.power(U, 2) + np.power(V, 2))
+        D0 = self.attr_input[9]['category'][1]['name_var'].get() + 1
+        n = 2
+        H = 1 / (1 + np.power(D / D0, 2 * n))
+        G = H * f_shifted
+        G = np.fft.ifftshift(G)
+        img_out_array = np.real(np.fft.ifft2(G))
+        return img_out_array
+
+        # # Convert to grayscale if needed
+        # if len(img_array.shape) > 2:
+        #     img_array = np.array(self.image.convert('L'))
+
+        # # Apply FFT
+        # F = np.fft.fft2(img_array)
+
+        # # Shift the zero frequency component to the center
+        # F = np.fft.fftshift(F)
+
+        # # Get image dimensions
+        # M, N = img_array.shape
+
+        # # Create frequency grid
+        # u = np.arange(0, M) - M/2
+        # v = np.arange(0, N) - N/2
+        # V, U = np.meshgrid(v, u)
+
+        # # Compute distance matrix
+        # D = np.sqrt(np.power(U, 2) + np.power(V, 2))
+
+        # # Define D0 and n
+        # D0 = self.attr_input[9]['category'][1]['name_var'].get() + 1
+        # n = 2
+
+        # # Ideal low-pass filter
+        # H = 1 / (1 + np.power(D / D0, 2 * n))
+
+        # # Apply filter
+        # G = H * F
+
+        # # Shift the zero frequency component back
+        # G = np.fft.ifftshift(G)
+
+        # # Compute inverse FFT
+        # imgOut = np.real(np.fft.ifft2(G))
+
+        # # Convert numpy array to PIL Image
+        # filtered_image = Image.fromarray(imgOut.astype('uint8'))
+        
+
+        
+
+        # # Update the result image
+        # self.show_result_image(self.image)
+
+
+    def apply_ideal_low_pass_filter(self, *args, **kwargs):
+        # Get the value of D0 and n from the scales
+        D0 = self.attr_input[9]['category'][0]['name_var'].get() + 1
+        n = self.attr_input[9]['category'][1]['name_var'].get()
+        
+        # Convert the PIL Image to numpy array
+        img_array = np.array(self.tmp_image)
+        
+        # Apply the ideal low-pass filter to each channel (r, g, b)
+        r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
+        r_filtered = self.apply_ideal_low_pass_filter_channel(r, D0, n)
+        g_filtered = self.apply_ideal_low_pass_filter_channel(g, D0, n)
+        b_filtered = self.apply_ideal_low_pass_filter_channel(b, D0, n)
+        
+        # Combine the filtered channels to create the resulting image
+        filtered_image = np.stack((r_filtered, g_filtered, b_filtered), axis=2)
+        
+        # Convert the numpy array back to a PIL Image
+        filtered_image = Image.fromarray(filtered_image.astype(np.uint8))
+        
+        # Update the result image
+        self.tmp_image = filtered_image.copy()
+        
+        # Display the filtered image
+        self.show_result_image(self.tmp_image)
+
+    def apply_ideal_low_pass_filter_channel(self, channel, D0, n):
+        # Apply FFT
+        F = np.fft.fft2(channel)
+        
+        # Shift the zero frequency component to the center
+        F_shifted = np.fft.fftshift(F)
+        
+        # Get image dimensions
+        M, N = channel.shape
+        
+        # Create frequency grid
+        u = np.arange(0, M) - M/2
+        v = np.arange(0, N) - N/2
+        V, U = np.meshgrid(v, u)
+        
+        # Compute distance matrix
+        D = np.sqrt(np.power(U, 2) + np.power(V, 2))
+        
+        # Define the ideal low-pass filter
+        H = 1 / (1 + np.power(D / D0, 2 * n))
+        
+        # Apply the filter
+        G = H * F_shifted
+        
+        # Shift the zero frequency component back
+        G_shifted = np.fft.ifftshift(G)
+        
+        # Compute the inverse FFT
+        channel_filtered = np.real(np.fft.ifft2(G_shifted))
+        
+        return channel_filtered
+
+        
+
+
+    def apply_gaussian_low_pass_filter(self, *args, **kwargs):
+        # Get the value of D0 from the scale
+        D0 = self.attr_input[9]['category'][2]['name_var'].get() + 1
+        # Perform FFT
+        img_array = np.array(self.tmp_image)
+        
+        r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
+
+        r_filtered = self.apply_gaussian_low_pass_filter_channel(r, D0)
+        g_filtered = self.apply_gaussian_low_pass_filter_channel(g, D0)
+        b_filtered = self.apply_gaussian_low_pass_filter_channel(b, D0)
+
+        filtered_image = np.stack((r_filtered, g_filtered, b_filtered), axis=2)
+
+        # Convert the numpy array back to a PIL Image
+        filtered_image = Image.fromarray(filtered_image.astype(np.uint8))
+
+        # Update the result image
+        self.tmp_image = filtered_image.copy()
+
+        # Display the filtered image
+        self.show_result_image(self.tmp_image)
+
+    def apply_gaussian_low_pass_filter_channel(self, channel, D0):
+        # Perform FFT
+        f_shifted = np.fft.fftshift(np.fft.fft2(channel))
+        M, N = channel.shape
+        u = np.arange(0, M) - M/2
+        v = np.arange(0, N) - N/2
+        V, U = np.meshgrid(v, u)
+        D = np.sqrt(np.power(U, 2) + np.power(V, 2))
+        H = np.exp(-np.power(D, 2) / (2 * np.power(D0, 2)))
+        G = H * f_shifted
+        G = np.fft.ifftshift(G)
+        img_out_array = np.real(np.fft.ifft2(G))
+
+        return img_out_array
+
+        
+        # # Convert to grayscale if needed
+        # if len(img_array.shape) > 2:
+        #     img_array = np.array(self.image.convert('L'))
+        # f_shifted = np.fft.fftshift(np.fft.fft2(img_array))
+        # M, N = img_array.shape
+        # u = np.arange(0, M) - M/2
+        # v = np.arange(0, N) - N/2
+        # V, U = np.meshgrid(v, u)
+        # D = np.sqrt(np.power(U, 2) + np.power(V, 2))
+        # H = np.exp(-np.power(D, 2) / (2 * np.power(D0, 2)))
+        # G = H * f_shifted
+        # G = np.fft.ifftshift(G)
+        # img_out_array = np.real(np.fft.ifft2(G))
+
+        # # Convert the array back to an image
+        # filtered_image = Image.fromarray(img_out_array.astype(np.uint8))
+
+        # # Update the result image
+        # self.image = filtered_image.convert("RGB")
+
+
+        # # Display the filtered image
+        # self.show_result_image(self.image)
+
+    def apply_ideal_high_pass_filter(self, *args, **kwargs):
+        # Convert PIL Image to numpy array
+        img_array = np.array(self.tmp_image)
+
+        r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
+
+        r_filtered = self.apply_ideal_high_pass_filter_channel(r)
+        g_filtered = self.apply_ideal_high_pass_filter_channel(g)
+        b_filtered = self.apply_ideal_high_pass_filter_channel(b)
+
+        filtered_image = np.stack((r_filtered, g_filtered, b_filtered), axis=2)
+
+        # Convert the numpy array back to a PIL Image
+        filtered_image = Image.fromarray(filtered_image.astype(np.uint8))
+
+        # Update the result image
+        self.tmp_image = filtered_image.copy()
+
+        # Display the filtered image
+        self.show_result_image(self.tmp_image)
+
+    def apply_ideal_high_pass_filter_channel(self, channel):
+        # Apply FFT
+        F = np.fft.fft2(channel)
+
+        # Shift the zero frequency component to the center
+        F = np.fft.fftshift(F)
+
+        # Get image dimensions
+        M, N = channel.shape
+
+        # Create frequency grid
+        u = np.arange(0, M) - M/2
+        v = np.arange(0, N) - N/2
+        V, U = np.meshgrid(v, u)
+
+        # Compute distance matrix
+        D = np.sqrt(np.power(U, 2) + np.power(V, 2))
+
+        # Define D0 and n
+        D0 = self.attr_input[10]['category'][0]['name_var'].get() + 1
+        n = 2
+
+        # Ideal high-pass filter
+        H = 1 - 1 / (1 + np.power(D / D0, 2 * n))
+
+        # Apply filter
+        G = H * F
+
+        # Shift the zero frequency component back
+        G = np.fft.ifftshift(G)
+
+        # Compute inverse FFT
+        imgOut = np.real(np.fft.ifft2(G))
+
+        return imgOut
+
+        
+    
+    def apply_butterworth_high_pass_filter(self, *args, **kwargs):
+        # Get the value of D0 and n from the scales
+        D0 = self.attr_input[10]['category'][1]['name_var'].get() + 1
+        n = self.attr_input[10]['category'][1]['name_var'].get()
+        # Perform FFT
+        img_array = np.array(self.tmp_image)
+
+        r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
+
+        r_filtered = self.apply_butterworth_high_pass_filter_channel(r, D0, n)
+        g_filtered = self.apply_butterworth_high_pass_filter_channel(g, D0, n)
+        b_filtered = self.apply_butterworth_high_pass_filter_channel(b, D0, n)
+
+        filtered_image = np.stack((r_filtered, g_filtered, b_filtered), axis=2)
+
+        # Convert the numpy array back to a PIL Image
+        filtered_image = Image.fromarray(filtered_image.astype(np.uint8))
+
+        # Update the result image
+        self.tmp_image = filtered_image.copy()
+
+        # Display the filtered image
+        self.show_result_image(self.tmp_image)
+
+    def apply_butterworth_high_pass_filter_channel(self, channel, D0, n):
+        # Perform FFT
+        f_shifted = np.fft.fftshift(np.fft.fft2(channel))
+        M, N = channel.shape
+        u = np.arange(0, M) - M/2
+        v = np.arange(0, N) - N/2
+        V, U = np.meshgrid(v, u)
+        D = np.sqrt(np.power(U, 2) + np.power(V, 2))
+        H = 1 - 1 / (1 + np.power(D / D0, 2*n))
+        G = H * f_shifted
+        G = np.fft.ifftshift(G)
+        img_out_array = np.real(np.fft.ifft2(G))
+        return img_out_array
+
+    
+    def apply_gaussian_high_pass_filter(self, *args, **kwargs):
+        # Get the value of D0 from the scale
+        D0 = self.attr_input[10]['category'][2]['name_var'].get() + 1
+        # Perform FFT
+        img_array = np.array(self.tmp_image)
+
+        r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
+
+        r_filtered = self.apply_gaussian_high_pass_filter_channel(r, D0)
+        g_filtered = self.apply_gaussian_high_pass_filter_channel(g, D0)
+        b_filtered = self.apply_gaussian_high_pass_filter_channel(b, D0)
+
+        filtered_image = np.stack((r_filtered, g_filtered, b_filtered), axis=2)
+
+        # Convert the numpy array back to a PIL Image
+        filtered_image = Image.fromarray(filtered_image.astype(np.uint8))
+
+        # Update the result image
+        self.tmp_image = filtered_image.copy()
+
+        # Display the filtered image
+        self.show_result_image(self.image)
+
+    def apply_gaussian_high_pass_filter_channel(self, channel, D0):
+        f_shifted = np.fft.fftshift(np.fft.fft2(channel))
+        M, N = channel.shape
+        u = np.arange(0, M) - M/2
+        v = np.arange(0, N) - N/2
+        V, U = np.meshgrid(v, u)
+        D = np.sqrt(np.power(U, 2) + np.power(V, 2))
+        H = 1 - np.exp(-np.power(D, 2) / (2 * np.power(D0, 2)))
+        G = H * f_shifted
+        G = np.fft.ifftshift(G)
+        img_out_array = np.real(np.fft.ifft2(G))
+        return img_out_array
+
+    
     # -------------------------------------
+
+    def update_origin_image(self):
+        self.image = self.tmp_image.copy()
+        self.origin_photo = ImageTk.PhotoImage(self.image)
+        if hasattr(self, 'lbl_origin_img'):
+            self.lbl_origin_img.destroy()
+        self.lbl_origin_img = tb.Label(self.ctn_top, image=self.origin_photo, bootstyle='info')
+        self.lbl_origin_img.image = self.origin_photo
+        self.lbl_origin_img.pack()
+
 
     
     def reset_image(self):
         self.image = Image.open(self.path_image)
+        self.tmp_image = self.image.copy()
         self.show_result_image(self.image)
         for attr in self.attr_input:
             for category in attr['category']:
                 category['name_var'].set(0)
 
     def apply_all_filter(self):
-        self.image = Image.open(self.path_image)
+        self.update_origin_image()
         for attr in self.attr_input:
             print(attr['textvar_check'].get())
             if attr['textvar_check'].get() == 1:
@@ -440,6 +846,19 @@ class CompBody(tb.Frame):
                     self.apply_gaussian_filter()
                 elif attr['label'] == 'filter_histogram' and 0 not in [category['name_var'].get() for category in attr['category']]:
                     self.apply_histogram_filter()
+                elif attr['label'] == 'filter_laplacian' and 0 not in [category['name_var'].get() for category in attr['category']]:
+                    self.apply_laplacian_filter()
+                elif attr['label'] == 'filter_sobel' and 0 not in [category['name_var'].get() for category in attr['category']]:
+                    self.apply_sobel_filter()
+                elif attr['label'] == 'filter_low_pass' and [category['name_var'].get() for category in attr['category']].count(0) > 1:
+                    self.apply_ideal_low_pass_filter()
+                    self.apply_butterworth_low_pass_filter()
+                    self.apply_gaussian_low_pass_filter()
+                elif attr['label'] == 'filter_high_pass' and [category['name_var'].get() for category in attr['category']].count(0) > 1:
+                    self.apply_ideal_high_pass_filter()
+                    self.apply_butterworth_high_pass_filter()
+                    self.apply_gaussian_high_pass_filter()
+
 
 
     def save_image(self):

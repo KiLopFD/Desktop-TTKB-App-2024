@@ -3,7 +3,7 @@ from typing import TypeVar
 T = TypeVar('T')
 
 class InterfaceDao:
-    def get(self, id: int) -> T:
+    def get_by_id(self, id: int) -> T:
         pass
 
     def get_all(self) -> list[T]:
@@ -17,3 +17,5 @@ class InterfaceDao:
 
     def delete(self, id: int) -> bool:
         pass
+
+

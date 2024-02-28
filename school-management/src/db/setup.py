@@ -16,6 +16,7 @@ class Teacher(Base):
     address = Column(String)
     cmnd = Column(String)
     birth_day = Column(Date)
+    phone = Column(String)
 
     def __str__(self):
         return f"{self.name} - {self.address} - {self.cmnd} - {self.birth_day}"
@@ -27,6 +28,7 @@ class Student(Base):
     address = Column(String)
     cmnd = Column(String)
     birth_day = Column(Date)
+    phone = Column(String)
 
     def __str__(self):
         return f"{self.name} - {self.address} - {self.cmnd} - {self.birth_day}"

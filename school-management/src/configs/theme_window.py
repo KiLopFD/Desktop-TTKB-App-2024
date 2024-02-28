@@ -18,8 +18,17 @@ import ttkbootstrap as tb
 config_window = {
     "title": "School Management System",
     "themename": "litera",
-    "position": (200, 200),
+    "position": (100, 200),
     "resizable": (True, True),
+    "size": (1700, 700),
+}
+
+
+edit_window = {
+    "title": "Edit",
+    "position": (100, 200),
+    "resizable": (True, True),
+    "size": (500, 900),
 }
 
 window = tb.Window(**config_window)

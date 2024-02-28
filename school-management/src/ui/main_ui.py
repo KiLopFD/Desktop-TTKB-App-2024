@@ -1,5 +1,5 @@
 import ttkbootstrap as tb 
-from src.configs.theme_window import window, config_window
+from src.configs.theme_window import window, config_window, edit_window
 from ttkbootstrap.constants import *
 from src.db.dao.student_dao import StudentDao
 from src.db.setup import Student, Teacher
@@ -8,6 +8,9 @@ from datetime import datetime
 from src.util.table_util import TableUtil
 from ttkbootstrap.tooltip import ToolTip
 from src.util.validation_util import FormValidation
+from ttkbootstrap.toast import ToastNotification
+from ttkbootstrap.tableview import Tableview
+from src.ui.edit_ui import EditUI
 
 
 class MainUI(tb.Frame):
@@ -15,7 +18,7 @@ class MainUI(tb.Frame):
         super().__init__(master, **kwargs)
         self.master = master
         self.role = role
-        self.pack()
+        self.pack(fill=BOTH, expand=YES)
         # Setup UI
         # Style 
         self.app_style = {
@@ -26,6 +29,8 @@ class MainUI(tb.Frame):
         self.tb_style = tb.Style()
         self.tb_style.configure(".", **self.app_style)
         self.tb_style.configure("TLabel", font=f"{self.app_style['font']} bold")
+        EditUI.state_selected = 0
+
         # UI Input
         self.ui_input_field = [
             {
@@ -65,31 +70,39 @@ class MainUI(tb.Frame):
         # Create Table UI
         self.student_data = self.get_student_data()
         TableUtil.initialize_student_table(self, self.ctn_show_student, self.student_data)
+        
         self.teacher_data = self.get_teacher_data()
         TableUtil.initialize_teacher_table(self, self.ctn_show_teacher, self.teacher_data)
+        # Add Event
+        self.student_table.bind_all('<<TreeviewSelect>>', self.edit_detail)
+        self.teacher_table.bind_all('<<TreeviewSelect>>', self.edit_detail)
+
         # DAO
         self.student_dao = StudentDao()
         self.teacher_dao = TeacherDao()
         #---------------------
         # Validate
         FormValidation.base_master = self
-        FormValidation.check_all_field(self.get_full_widget())
+        FormValidation.check_all_field(self.ui_input_field)
         # Overide Style
         self.overide_style()
 
+
+    
+
     def get_student_data(self):
         return {
-            "columns": ["Id", "Họ và tên", "Địa chỉ", "CMND", "Ngày sinh"],
+            "columns": ["Id", "Họ và tên", "Địa chỉ", "CMND", "Ngày sinh", "Số điện thoại"],
             "rows": [
-                (student.id, student.name, student.address, student.cmnd, student.birth_day) for student in StudentDao().get_all()
+                (student.id, student.name, student.address, student.cmnd, student.birth_day, student.phone) for student in StudentDao().get_all()
             ]
         }
     
     def get_teacher_data(self):
         return {
-            "columns": ["Id", "Họ và tên", "Địa chỉ", "CMND", "Ngày sinh"],
+            "columns": ["Id", "Họ và tên", "Địa chỉ", "CMND", "Ngày sinh", "Số điện thoại"],
             "rows": [
-                (teacher.id, teacher.name, teacher.address, teacher.cmnd, teacher.birth_day) for teacher in TeacherDao().get_all()
+                (teacher.id, teacher.name, teacher.address, teacher.cmnd, teacher.birth_day, teacher.phone) for teacher in TeacherDao().get_all()
             ]
         }
     
@@ -136,7 +149,7 @@ class MainUI(tb.Frame):
     def create_ui_frame_left(self):
         self.frame_left.configure(padding=10)
         self.ctn_input = tb.LabelFrame(self.frame_left, text="Nhập thông tin", bootstyle="dark", padding=10)
-        self.ctn_input.pack(pady=10)
+        self.ctn_input.pack(pady=10, fill=BOTH,)
         # Create input
         self.lbl_frame_reg = {}
         for input_field in self.ui_input_field:
@@ -205,30 +218,64 @@ class MainUI(tb.Frame):
 
     # Actions For Student
     def add_student(self):
-        student_dao = StudentDao()
-        student = Student(
-            name=self.ui_input_field[0]["name_var"].get(),
-            address=self.ui_input_field[1]["name_var"].get(),
-            cmnd=self.ui_input_field[2]["name_var"].get(),
-            birth_day=datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y"),
-        )
-        student_dao.add(student)
-        print("Add student success", student)
-        self.student_data = self.get_student_data()
-        TableUtil.built_data_onchange(self, self.student_data, "student")
+        FormValidation.check_all_field(self.ui_input_field)
+        if [value for value in FormValidation.state_validate.values() if value == True].count(True) == 3:
+            toast = ToastNotification(
+                title="Add Student Success",
+                message="Thêm học sinh thành công",
+                duration=3000,
+            )
+            toast.show_toast()
+            student = Student(
+                name=self.ui_input_field[0]["name_var"].get(),
+                address=self.ui_input_field[1]["name_var"].get(),
+                cmnd=self.ui_input_field[2]["name_var"].get(),
+                birth_day=datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y"),
+                phone=self.ui_input_field[4]["name_var"].get()
+            )
+            self.student_dao.add(student)
+            print("Add student success", student)
+            self.student_data = self.get_student_data()
+            TableUtil.built_data_onchange(self, self.student_data, "student")
+            FormValidation.state_validate={} # Uncheck all field
+
+        else:
+            toast = ToastNotification(
+                title="Add Student Fail",
+                message="Thêm học sinh không thành công",
+                duration=3000,
+                bootstyle="danger"
+            )
+            toast.show_toast()
+            FormValidation.state_validate = {}
+
+    
+    def clear_all_input(self):
+        for input_field in self.ui_input_field:
+            if input_field["label"] == "birthday":
+                input_field["widget"].entry.setvar("", datetime.strftime(datetime.now(), "%m/%d/%Y"))
+            else:
+                input_field["name_var"].set("")
+
     
     def update_student(self):
+        FormValidation.uncheck_all_field(self.ui_input_field)
+        FormValidation.state_validate={}
         student = self.student_dao.get_by_id(self.entry_id.get())
         student.name = self.ui_input_field[0]["name_var"].get()
         student.address = self.ui_input_field[1]["name_var"].get()
         student.cmnd = self.ui_input_field[2]["name_var"].get()
         student.birth_day = datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y")
+        student.phone = self.ui_input_field[4]["name_var"].get()
         self.student_dao.update(student)
         print("Update student success", student)
         self.student_data = self.get_student_data()
         TableUtil.built_data_onchange(self, self.student_data, "student")
+        self.clear_all_input()
 
     def delete_student(self):
+        FormValidation.uncheck_all_field(self.ui_input_field)
+        FormValidation.state_validate={}
         student_dao = StudentDao()
         student = student_dao.get_by_id(self.entry_id.get())
         student_dao.delete(student)
@@ -238,31 +285,55 @@ class MainUI(tb.Frame):
 
     # Actions For Teacher
     def add_teacher(self):
-        teacher_dao = TeacherDao()
-        teacher = Teacher(
-            name=self.ui_input_field[0]["name_var"].get(),
-            address=self.ui_input_field[1]["name_var"].get(),
-            cmnd=self.ui_input_field[2]["name_var"].get(),
-            birth_day=datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y"),
-        )
-        teacher_dao.add(teacher)
-        print("Add teacher success", teacher)
-        self.teacher_data = self.get_teacher_data()
-        TableUtil.built_data_onchange(self, self.teacher_data, "teacher")
+        FormValidation.check_all_field(self.ui_input_field)
+        if [value for value in FormValidation.state_validate.values() if value == True].count(True) == 3:
+            toast = ToastNotification(
+                title="Add Teacher Success",
+                message="Thêm giáo viên thành công",
+                duration=3000,
+            )
+            toast.show_toast()
+            teacher_dao = TeacherDao()
+            teacher = Teacher(
+                name=self.ui_input_field[0]["name_var"].get(),
+                address=self.ui_input_field[1]["name_var"].get(),
+                cmnd=self.ui_input_field[2]["name_var"].get(),
+                birth_day=datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y"),
+                phone=self.ui_input_field[4]["name_var"].get()
+            )
+            teacher_dao.add(teacher)
+            print("Add teacher success", teacher)
+            self.teacher_data = self.get_teacher_data()
+            TableUtil.built_data_onchange(self, self.teacher_data, "teacher")
+            FormValidation.state_validate={} # Uncheck all field
+        else:
+            toast = ToastNotification(
+                title="Add Teacher Fail",
+                message="Thêm giáo viên không thành công",
+                duration=3000,
+                bootstyle="danger"
+            )
+            toast.show_toast()
+            self.clear_all_input()
+            FormValidation.state_validate = {}
 
     def update_teacher(self):
-        teacher_dao = TeacherDao()
-        teacher = teacher_dao.get_by_id(self.entry_id.get())
+        FormValidation.uncheck_all_field(self.ui_input_field)
+        teacher = self.teacher_dao.get_by_id(self.entry_id.get())
         teacher.name = self.ui_input_field[0]["name_var"].get()
         teacher.address = self.ui_input_field[1]["name_var"].get()
         teacher.cmnd = self.ui_input_field[2]["name_var"].get()
         teacher.birth_day = datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y")
-        teacher_dao.update(teacher)
+        teacher.phone = self.ui_input_field[4]["name_var"].get()
+        self.teacher_dao.update(teacher)
         print("Update teacher success", teacher)
         self.teacher_data = self.get_teacher_data()
         TableUtil.built_data_onchange(self, self.teacher_data, "teacher")
+        self.clear_all_input()
 
     def delete_teacher(self):
+        FormValidation.uncheck_all_field(self.ui_input_field)
+        FormValidation.state_validate={}
         teacher_dao = TeacherDao()
         teacher = teacher_dao.get_by_id(self.entry_id.get())
         teacher_dao.delete(teacher)
@@ -270,6 +341,25 @@ class MainUI(tb.Frame):
         self.teacher_data = self.get_teacher_data()
         TableUtil.built_data_onchange(self, self.teacher_data, "teacher")
 
+    # Edit Detail
+    def edit_detail(self, event):
+        selected_rows = self.student_table.get_rows(selected=True)
+        for row in selected_rows:
+            if EditUI.state_selected > 3:
+                if hasattr(self, "new_window"): 
+                    self.new_window.destroy()
+                self.new_window = tb.Toplevel(**edit_window)
+                print(row.values[0])
+                if self.nb.index(self.nb.select()) == 0:
+                    self.selected_obj = self.student_dao.get_by_id(row.values[0])
+                else:
+                    self.selected_obj = self.teacher_dao.get_by_id(row.values[0])
+                EditUI(self.new_window, self)
+                self.new_window.mainloop()
+            EditUI.state_selected += 1
+
+
+    # Overide
     def overide_style(self):
         self.frame_left.config(width=400)
     

@@ -34,7 +34,7 @@ class PageLeft(tb.Frame):
             attr['check_var'].pack(side=LEFT)
             for category in attr['category']:
                 self.row = tb.Frame(self.lbl_frame, bootstyle='dark', padding=5)
-                self.row.pack(fill=X, side=RIGHT)
+                self.row.pack(fill=X)
                 self.lbl = tb.Label(self.row, text=category['name'], bootstyle='info')
                 self.lbl.pack(side=LEFT)
                 category['name_var'] = tb.Scale(self.row, from_=0, to=100, orient=HORIZONTAL, bootstyle='info')

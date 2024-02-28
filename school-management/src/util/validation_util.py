@@ -7,7 +7,7 @@ from ttkbootstrap.validation import (
     add_regex_validation,
     add_validation,
     validator,
-    ValidationEvent
+    ValidationEvent,
 )
 import ttkbootstrap as tb
 from datetime import datetime
@@ -23,18 +23,20 @@ class FormValidation:
     
     @staticmethod
     def check_all_field(widget_fields):
-        for label, widget in widget_fields.items():
-            if label == "fullname":
-                add_validation(widget, FormValidation.check_fullname)
-            if label == "address":
-                add_validation(widget, FormValidation.check_fullname)
-            if label == "phone":
-                add_validation(widget, FormValidation.check_phone)
-            if label == "birthday":
+        for widget in widget_fields:
+            if widget["label"] == "fullname":
+                add_validation(widget["widget"], FormValidation.check_fullname)
+            if widget["label"] == "phone":
+                add_validation(widget["widget"], FormValidation.check_phone)
+            if widget["label"] == "birthday":
                 # ...
-                add_validation(widget.entry, FormValidation.check_birthday)
-
+                add_validation(widget["widget"].entry, FormValidation.check_birthday)
     
+    @staticmethod
+    def uncheck_all_field(widget_fields):
+        for widget in widget_fields:
+            FormValidation.base_master.lbl_frame_reg[widget['label']].config(text=widget['name_label'], bootstyle='primary')
+
     @staticmethod
     @validator
     def check_username(event: ValidationEvent):
