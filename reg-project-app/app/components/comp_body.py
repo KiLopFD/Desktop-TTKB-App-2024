@@ -1,5 +1,5 @@
 import ttkbootstrap as tb
-from app.pages.main_ui.page_project import PageProject
+from app.pages.main import PageProject, PageTask
 from app.db.main import ProjectDao
 
 
@@ -87,6 +87,7 @@ class CompBody(tb.Frame):
     def create_tab_tasks(self):
         tab_tasks = tb.Frame(self.nb_main_content, bootstyle="dark")
         self.nb_main_content.add(tab_tasks, text="Tasks")
+        PageTask(tab_tasks, self)
 
     def create_tab_people(self):
         tab_people = tb.Frame(self.nb_main_content, bootstyle="dark")

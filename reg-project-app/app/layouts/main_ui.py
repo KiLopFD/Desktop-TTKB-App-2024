@@ -9,7 +9,7 @@ class MainUI(tb.Frame):
     def __init__(self, master: tb.Toplevel, user_account: Account, **kwargs):
         super().__init__(master, **kwargs)
         self.master = master
-        self.user_account = user_account
+        self.user_account: Account = user_account
         self.pack(expand=True, fill=tb.BOTH)
         #-----------------------------------------------------------------------
         # Variables

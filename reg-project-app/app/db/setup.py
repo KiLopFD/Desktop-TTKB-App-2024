@@ -5,11 +5,16 @@ from sqlalchemy import Column, Integer, String, Date, ForeignKey, Boolean, Table
 from datetime import date
 from sqlalchemy.orm import relationship
 
-
 engine = create_engine('sqlite:///db.sqlite3', echo=True)
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
+
+# Define association table for Group and Account
+group_account_association = Table('group_account_association', Base.metadata,
+    Column('group_id', Integer, ForeignKey('groups.id')),
+    Column('account_id', Integer, ForeignKey('account.id'))
+)
 
 class Teacher(Base):
     __tablename__ = 'teachers'
@@ -63,6 +68,7 @@ class Project(Base):
     end_date = Column(Date)
     accounts = relationship("Account", secondary=project_account_association, back_populates="projects")
     tasks = relationship("Task", back_populates="project")
+    groups = relationship("Group", back_populates="project")
 
     def __str__(self):
         return f"{self.name} - {self.description} - {self.start_date} - {self.end_date}"
@@ -80,9 +86,23 @@ class Account(Base):
     role = Column(String, default='user')
     projects = relationship("Project", secondary=project_account_association, back_populates="accounts")
     tasks = relationship("Task", back_populates="account")
+    groups = relationship("Group", secondary=group_account_association, back_populates="accounts")
 
     def __str__(self):
         return f"{self.username} - {self.fullname} - {self.email} - {self.phone} - {self.birthday} - {self.role}"
 
-def create_conections():
+# Define Group class with relationship to Account
+class Group(Base):
+    __tablename__ = 'groups'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    accounts = relationship("Account", secondary=group_account_association, back_populates="groups")
+    project_id = Column(Integer, ForeignKey('projects.id'), nullable=True)
+    project = relationship("Project", back_populates="groups")
+
+    def __str__(self):
+        return f"{self.name}"
+
+def create_connections():
     Base.metadata.create_all(engine)
+

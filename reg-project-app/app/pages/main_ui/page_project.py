@@ -11,6 +11,9 @@ from ttkbootstrap.tableview import Tableview, TableRow
     start_date = Column(Date)
     end_date = Column(Date)
 '''
+'''
+    base_master: Self@CompBody
+'''
 
 
 class PageProject(ScrolledFrame):
@@ -67,6 +70,7 @@ class PageProject(ScrolledFrame):
         for row in rows:
             print(row._values)
 
+    
     
     def create_action_group(self):
         self.lbl_frame_action = tb.LabelFrame(self, text="Thiết lập và tùy chỉnh", padding=10, height=200)
@@ -145,7 +149,7 @@ class PageProject(ScrolledFrame):
             name=self.fields[0]['var'].get(),
             description=self.fields[1]['widget'].text.get(1.0, "end-1c"),
             start_date=datetime.strptime(self.fields[2]['widget'].entry.get(), "%m/%d/%Y"),
-            end_date=datetime.strptime(self.fields[3]['widget'].entry.get(), "%m/%d/%Y")
+            end_date=datetime.strptime(self.fields[3]['widget'].entry.get(), "%m/%d/%Y"),
         )
         self.project_dao.add(project)
         print('Create project success')

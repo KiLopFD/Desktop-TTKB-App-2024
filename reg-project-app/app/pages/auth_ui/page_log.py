@@ -54,7 +54,7 @@ class PageLog(tb.Frame):
             from app.configs.info_window import MAIN_UI_WINDOW
             new_window = tb.Toplevel(**MAIN_UI_WINDOW)
             from app.layouts.main_ui import MainUI
-            MainUI(new_window, find_user[0])
+            MainUI(new_window, user_account=find_user[0])
             new_window.mainloop()
             return
 

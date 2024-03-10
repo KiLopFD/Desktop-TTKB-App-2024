@@ -8,7 +8,7 @@
 '''
 AUTH_UI_WINDOW = {
     'title': 'Authentication',
-    'themename': 'cyborg',
+    'themename': 'superhero',
     'iconphoto': '',
     'size': (500, 900),
     'position': (400, 50),
