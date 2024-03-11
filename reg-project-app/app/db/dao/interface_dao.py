@@ -17,3 +17,6 @@ class InterfaceDao:
 
     def delete(self, id: int) -> bool:
         pass
+
+    def delete_all(self) -> bool:
+        pass

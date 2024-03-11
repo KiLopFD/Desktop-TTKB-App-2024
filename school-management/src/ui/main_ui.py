@@ -12,7 +12,10 @@ from ttkbootstrap.toast import ToastNotification
 from ttkbootstrap.tableview import Tableview
 from src.ui.edit_ui import EditUI
 
-
+'''
+    Đọc kĩ Frame, do được implement từ Frame
+    Tạo giao diện chính
+'''
 class MainUI(tb.Frame):
     def __init__(self, master=None, role='student', **kwargs):
         super().__init__(master, **kwargs)
@@ -63,6 +66,18 @@ class MainUI(tb.Frame):
                 "name_var": tb.StringVar(),
                 "widget": None,
             },
+            {
+                "label": "sex",
+                "name_label": "Giới tính",
+                "name_var": tb.StringVar(),
+                "widget": None,
+            },
+            {
+                "label": "email",
+                "name_label": "Email",
+                "name_var": tb.StringVar(),
+                "widget": None,
+            }
         ]
         #---------------------
         # Create widgets
@@ -70,7 +85,6 @@ class MainUI(tb.Frame):
         # Create Table UI
         self.student_data = self.get_student_data()
         TableUtil.initialize_student_table(self, self.ctn_show_student, self.student_data)
-        
         self.teacher_data = self.get_teacher_data()
         TableUtil.initialize_teacher_table(self, self.ctn_show_teacher, self.teacher_data)
         # Add Event
@@ -92,17 +106,17 @@ class MainUI(tb.Frame):
 
     def get_student_data(self):
         return {
-            "columns": ["Id", "Họ và tên", "Địa chỉ", "CMND", "Ngày sinh", "Số điện thoại"],
+            "columns": ["Id", "Họ và tên", "Địa chỉ", "CMND", "Ngày sinh", "Số điện thoại", "Giới tính", "Email"],
             "rows": [
-                (student.id, student.name, student.address, student.cmnd, student.birth_day, student.phone) for student in StudentDao().get_all()
+                (student.id, student.name, student.address, student.cmnd, student.birth_day, student.phone, student.sex, student.email) for student in StudentDao().get_all()
             ]
         }
     
     def get_teacher_data(self):
         return {
-            "columns": ["Id", "Họ và tên", "Địa chỉ", "CMND", "Ngày sinh", "Số điện thoại"],
+            "columns": ["Id", "Họ và tên", "Địa chỉ", "CMND", "Ngày sinh", "Số điện thoại", "Giới tính", "Email"],
             "rows": [
-                (teacher.id, teacher.name, teacher.address, teacher.cmnd, teacher.birth_day, teacher.phone) for teacher in TeacherDao().get_all()
+                (teacher.id, teacher.name, teacher.address, teacher.cmnd, teacher.birth_day, teacher.phone, teacher.sex, teacher.email) for teacher in TeacherDao().get_all()
             ]
         }
     
@@ -186,16 +200,16 @@ class MainUI(tb.Frame):
         self.frame_right.configure(padding=10)
         self.nb = tb.Notebook(self.frame_right, width=1000, height=500)
         #---------------------
+        # Create Tab
         self.ctn_show_student = tb.LabelFrame(self.nb, text="Danh sách học sinh", bootstyle="primary", padding=10)
         self.nb.add(self.ctn_show_student, text="Học sinh")
         self.ctn_show_teacher = tb.LabelFrame(self.nb, text="Danh sách giáo viên", bootstyle="primary", padding=10)
         self.nb.add(self.ctn_show_teacher, text="Giáo viên")
         self.nb.pack(fill=BOTH, expand=YES)
         #---------------------
+        # Hide Teacher Tab
         self.check_show_data()
         
-            
-    
     def check_show_data(self):
         if self.role == "student":
             self.nb.hide(self.ctn_show_teacher)
@@ -219,7 +233,8 @@ class MainUI(tb.Frame):
     # Actions For Student
     def add_student(self):
         FormValidation.check_all_field(self.ui_input_field)
-        if [value for value in FormValidation.state_validate.values() if value == True].count(True) == 3:
+        print([value for value in FormValidation.state_validate.values() if value == True].count(True))
+        if [value for value in FormValidation.state_validate.values() if value == True].count(True) == 7: # 7 Field
             toast = ToastNotification(
                 title="Add Student Success",
                 message="Thêm học sinh thành công",
@@ -231,13 +246,16 @@ class MainUI(tb.Frame):
                 address=self.ui_input_field[1]["name_var"].get(),
                 cmnd=self.ui_input_field[2]["name_var"].get(),
                 birth_day=datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y"),
-                phone=self.ui_input_field[4]["name_var"].get()
+                phone=self.ui_input_field[4]["name_var"].get(),
+                sex=self.ui_input_field[5]["name_var"].get(),
+                email=self.ui_input_field[6]["name_var"].get()
             )
             self.student_dao.add(student)
             print("Add student success", student)
             self.student_data = self.get_student_data()
             TableUtil.built_data_onchange(self, self.student_data, "student")
             FormValidation.state_validate={} # Uncheck all field
+            self.clear_all_input()
 
         else:
             toast = ToastNotification(
@@ -262,11 +280,13 @@ class MainUI(tb.Frame):
         FormValidation.uncheck_all_field(self.ui_input_field)
         FormValidation.state_validate={}
         student = self.student_dao.get_by_id(self.entry_id.get())
-        student.name = self.ui_input_field[0]["name_var"].get()
-        student.address = self.ui_input_field[1]["name_var"].get()
-        student.cmnd = self.ui_input_field[2]["name_var"].get()
-        student.birth_day = datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y")
-        student.phone = self.ui_input_field[4]["name_var"].get()
+        student.name = self.ui_input_field[0]["name_var"].get() if self.ui_input_field[0]["name_var"].get() != "" else student.name
+        student.address = self.ui_input_field[1]["name_var"].get() if self.ui_input_field[1]["name_var"].get() != "" else student.address
+        student.cmnd = self.ui_input_field[2]["name_var"].get() if self.ui_input_field[2]["name_var"].get() != "" else student.cmnd
+        student.birth_day = datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y") if self.ui_input_field[3]["widget"].entry.get() !=  datetime.strftime(datetime.now(), "%m/%d/%Y") else student.birth_day
+        student.phone = self.ui_input_field[4]["name_var"].get() if self.ui_input_field[4]["name_var"].get() != "" else student.phone
+        student.sex = self.ui_input_field[5]["name_var"].get() if self.ui_input_field[5]["name_var"].get() != "" else student.sex
+        student.email = self.ui_input_field[6]["name_var"].get() if self.ui_input_field[6]["name_var"].get() != "" else student.email
         self.student_dao.update(student)
         print("Update student success", student)
         self.student_data = self.get_student_data()
@@ -286,7 +306,7 @@ class MainUI(tb.Frame):
     # Actions For Teacher
     def add_teacher(self):
         FormValidation.check_all_field(self.ui_input_field)
-        if [value for value in FormValidation.state_validate.values() if value == True].count(True) == 3:
+        if [value for value in FormValidation.state_validate.values() if value == True].count(True) == 7:
             toast = ToastNotification(
                 title="Add Teacher Success",
                 message="Thêm giáo viên thành công",
@@ -299,13 +319,16 @@ class MainUI(tb.Frame):
                 address=self.ui_input_field[1]["name_var"].get(),
                 cmnd=self.ui_input_field[2]["name_var"].get(),
                 birth_day=datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y"),
-                phone=self.ui_input_field[4]["name_var"].get()
+                phone=self.ui_input_field[4]["name_var"].get(),
+                sex=self.ui_input_field[5]["name_var"].get(),
+                email=self.ui_input_field[6]["name_var"].get()
             )
             teacher_dao.add(teacher)
             print("Add teacher success", teacher)
             self.teacher_data = self.get_teacher_data()
             TableUtil.built_data_onchange(self, self.teacher_data, "teacher")
             FormValidation.state_validate={} # Uncheck all field
+            self.clear_all_input()
         else:
             toast = ToastNotification(
                 title="Add Teacher Fail",
@@ -320,11 +343,13 @@ class MainUI(tb.Frame):
     def update_teacher(self):
         FormValidation.uncheck_all_field(self.ui_input_field)
         teacher = self.teacher_dao.get_by_id(self.entry_id.get())
-        teacher.name = self.ui_input_field[0]["name_var"].get()
-        teacher.address = self.ui_input_field[1]["name_var"].get()
-        teacher.cmnd = self.ui_input_field[2]["name_var"].get()
-        teacher.birth_day = datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y")
-        teacher.phone = self.ui_input_field[4]["name_var"].get()
+        teacher.name = self.ui_input_field[0]["name_var"].get() if self.ui_input_field[0]["name_var"].get() != "" else teacher.name
+        teacher.address = self.ui_input_field[1]["name_var"].get() if self.ui_input_field[1]["name_var"].get() != "" else teacher.address
+        teacher.cmnd = self.ui_input_field[2]["name_var"].get() if self.ui_input_field[2]["name_var"].get() != "" else teacher.cmnd
+        teacher.birth_day = datetime.strptime(self.ui_input_field[3]["widget"].entry.get(), "%m/%d/%Y") if self.ui_input_field[3]["widget"].entry.get() !=  datetime.strftime(datetime.now(), "%m/%d/%Y") else teacher.birth_day
+        teacher.phone = self.ui_input_field[4]["name_var"].get() if self.ui_input_field[4]["name_var"].get() != "" else teacher.phone
+        teacher.sex = self.ui_input_field[5]["name_var"].get() if self.ui_input_field[5]["name_var"].get() != "" else teacher.sex
+        teacher.email = self.ui_input_field[6]["name_var"].get() if self.ui_input_field[6]["name_var"].get() != "" else teacher.email
         self.teacher_dao.update(teacher)
         print("Update teacher success", teacher)
         self.teacher_data = self.get_teacher_data()
@@ -343,20 +368,27 @@ class MainUI(tb.Frame):
 
     # Edit Detail
     def edit_detail(self, event):
-        selected_rows = self.student_table.get_rows(selected=True)
-        for row in selected_rows:
-            if EditUI.state_selected > 3:
-                if hasattr(self, "new_window"): 
-                    self.new_window.destroy()
-                self.new_window = tb.Toplevel(**edit_window)
-                print(row.values[0])
-                if self.nb.index(self.nb.select()) == 0:
-                    self.selected_obj = self.student_dao.get_by_id(row.values[0])
-                else:
-                    self.selected_obj = self.teacher_dao.get_by_id(row.values[0])
-                EditUI(self.new_window, self)
-                self.new_window.mainloop()
-            EditUI.state_selected += 1
+        ...
+        # selected_rows = self.student_table.get_rows(selected=True)
+        # for row in selected_rows:
+        #     if EditUI.state_selected > 3:
+        #         '''
+        #             Đã fix lỗi khi mở nhiều cửa sổ chỉnh sửa
+        #             - Kiểm tra nếu có cửa sổ chỉnh sửa thì destroy cửa sổ đó, mở EditUI mới
+        #             - Tạo cửa sổ mới
+        #             - Lấy dữ liệu từ row được chọn
+        #         '''
+        #         if hasattr(self, "new_window"): 
+        #             self.new_window.destroy()
+        #         self.new_window = tb.Toplevel(**edit_window)
+        #         print(row.values[0])
+        #         if self.nb.index(self.nb.select()) == 0:
+        #             self.selected_obj = self.student_dao.get_by_id(row.values[0])
+        #         else:
+        #             self.selected_obj = self.teacher_dao.get_by_id(row.values[0])
+        #         EditUI(self.new_window, self)
+        #         self.new_window.mainloop()
+        #     EditUI.state_selected += 1
 
 
     # Overide

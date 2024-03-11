@@ -3,7 +3,10 @@ from ttkbootstrap.constants import *
 from datetime import datetime
 from src.util.table_util import TableUtil
 
-
+'''
+    Đọc kĩ Frame, do được implement từ Frame
+    Tạo giao diện chỉnh sửa thông tin
+'''
 class EditUI(tb.Frame):
     state_selected = 0
 

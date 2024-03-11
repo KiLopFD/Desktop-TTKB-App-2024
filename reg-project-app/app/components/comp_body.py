@@ -8,6 +8,8 @@ class CompBody(tb.Frame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
         self.master = master # Self@MainUI
+        # Set Selected Account
+        self.selected_account = self.master.user_account
         # Variables
         self.table_fields = [
             {
@@ -54,26 +56,49 @@ class CompBody(tb.Frame):
         first_row = tb.Frame(self.left_bar, bootstyle="dark")
         first_row.pack(fill="x", side="top")
         for action in self.list_action[:3]:
-            btn = tb.Button(first_row, text=action, bootstyle="dark", width=20, command=lambda index=self.list_action.index(action):self.nb_main_content.select(index))
+            btn = tb.Button(first_row, text=action, bootstyle="dark", width=20, command=lambda index=self.list_action.index(action):self.selected_tab(index))
             btn.pack(pady=3, fill="x")
         second_row = tb.Frame(self.left_bar, bootstyle="dark")
         second_row.pack(fill="x", side="bottom")
         for action in self.list_action[3:]:
-            btn = tb.Button(second_row, text=action, bootstyle="info", width=20, command=lambda index=self.list_action.index(action):self.nb_main_content.select(index))
+            btn = tb.Button(second_row, text=action, bootstyle="info", width=20, command=lambda index=self.list_action.index(action):self.selected_tab(index))
             btn.pack(pady=3, fill="x")
 
-    # create main content
+    def selected_tab(self, index: int):
+        print(f"Selected tab: {index}")
+        self.nb_main_content.select(index)
+        self.refresh_table(index)
+
+    def refresh_table(self, index: int):
+        
+        if index == 0:
+            if hasattr(self, "refresh_table_project"):
+                self.refresh_table_project()
+        elif index == 1:
+            if hasattr(self, "refresh_table_task"):
+                self.refresh_table_task()
+
+
+    # Create Main Content
     def create_main_content(self):
         self.main_content = tb.Frame(self, bootstyle="dark")
         self.main_content.pack(fill="both", side="right", expand=True)
         self.nb_main_content = tb.Notebook(self.main_content, bootstyle="dark")
         self.nb_main_content.pack(fill="both", expand=True)
+        # Add event
+        self.nb_main_content.bind("<<NotebookTabChanged>>", self.on_tab_change)
         # Create tab
         self.create_tab_projects()
         self.create_tab_tasks()
         self.create_tab_people()
         self.create_tab_files()
         self.create_tab_info()
+
+    
+
+    def on_tab_change(self, event):
+        print(f"Tab changed: {self.nb_main_content.index(self.nb_main_content.select())}")
+        self.refresh_table(self.nb_main_content.index(self.nb_main_content.select()))
 
     def overide_style(self):
         self.config(bootstyle="secondary")

@@ -18,9 +18,9 @@ import ttkbootstrap as tb
 config_window = {
     "title": "School Management System",
     "themename": "litera",
-    "position": (100, 200),
+    "position": (100, 100),
     "resizable": (True, True),
-    "size": (1700, 700),
+    "size": (1700, 800),
 }
 
 

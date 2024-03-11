@@ -10,6 +10,10 @@ class AuthUI(tb.Frame):
         super().__init__(master, **kwargs)
         self.master = master
         self.pack(expand=True, fill=BOTH)
+        # Style
+        self.my_style = tb.Style()
+        self.my_style.configure('.', font=('Helvetica', 11))
+        self.my_style.configure('Treeview', rowheight=40)
         # Variables
         self.log_input_fields = [
             {

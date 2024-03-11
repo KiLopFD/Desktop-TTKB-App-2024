@@ -4,6 +4,9 @@ from app.db.setup import session, Group
 class GroupDao(InterfaceDao):
     def __init__(self, session = session):
         self.session = session
+    
+    def get(self, id: int) -> Group:
+        return self.session.query(Group).get(id)
 
     def add(self, group):
         self.session.add(group)
@@ -22,3 +25,7 @@ class GroupDao(InterfaceDao):
 
     def get_by_id(self, id):
         return self.session.query(Group).filter(Group.id == id).first()
+    
+    def delete_all(self):
+        self.session.query(Group).delete()
+        self.session.commit()

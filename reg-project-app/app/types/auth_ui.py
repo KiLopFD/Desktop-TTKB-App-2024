@@ -10,3 +10,4 @@ RegInputFieldType = NewType(
     Dict[Literal['username', 'fullname', 'email', 'phone', 'birthday', 'password'], Union[tb.Entry]]
     )
 
+

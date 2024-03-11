@@ -29,6 +29,8 @@ class PageProject(ScrolledFrame):
         self.pack(expand=True, fill="both")
         self.create_widgets()
         self.overide_style()
+        # Global Base Master
+        self.base_master.refresh_table_project = self.refresh_table
 
 
     def create_widgets(self):
@@ -52,9 +54,11 @@ class PageProject(ScrolledFrame):
                 project.description,
                 project.start_date,
                 project.end_date,
-                len(project.accounts)
+                self.get_account_register(project)
             ) for project in self.project_dao.get_all()
         ]
+    
+    
 
 
     def create_table(self):
@@ -155,4 +159,14 @@ class PageProject(ScrolledFrame):
         print('Create project success')
         # Reload data for table
         TableUtil.built_data_onchange(self.base_master.table_fields[0]['widget'],self.get_table_data())
+
+    def refresh_table(self):
+        TableUtil.built_data_onchange(self.base_master.table_fields[0]['widget'],self.get_table_data())
+
+    def get_account_register(self, project):
+        all_account_in_group = [group.accounts for group in project.groups]
+        length = 0
+        for accounts in all_account_in_group:
+            length += len(accounts)
+        return length
 

@@ -1,3 +1,17 @@
+'''
+    This file is used to validate the input of the user
+    - check_username: check the username
+    - check_fullname: check the fullname
+    - check_email: check the email
+    - check_phone: check the phone
+    - check_password: check the password
+    - check_birthday: check the birthday
+    - check_address: check the address
+    - check_all_field: check all the field in the form
+    - uncheck_all_field: uncheck all the field in the form
+    - state_validate: store the state of the validation
+    - base_master: store the master of the form
+'''
 from ttkbootstrap.validation import (
     add_numeric_validation,
     add_text_validation,
@@ -31,11 +45,36 @@ class FormValidation:
             if widget["label"] == "birthday":
                 # ...
                 add_validation(widget["widget"].entry, FormValidation.check_birthday)
+            if widget["label"] == "email":
+                add_validation(widget["widget"], FormValidation.check_email)
+            if widget["label"] == "address":
+                add_validation(widget["widget"], (lambda *event, label=widget["label"]: FormValidation.check_blank(*event, label=label)))
+            if widget["label"] == "cmnd":
+                add_validation(widget["widget"], (lambda *event, label=widget["label"]: FormValidation.check_blank(*event, label=label)))
+            if widget["label"] == "sex":
+                add_validation(widget["widget"], (lambda *event, label=widget["label"]: FormValidation.check_blank(*event, label=label)))
+
     
     @staticmethod
     def uncheck_all_field(widget_fields):
         for widget in widget_fields:
             FormValidation.base_master.lbl_frame_reg[widget['label']].config(text=widget['name_label'], bootstyle='primary')
+
+    @staticmethod
+    @validator
+    def check_blank(event: ValidationEvent, label: str):
+        print(event.postchangetext, label)
+        notice_check = ""
+        notice_right = "Cảm ơn bạn đã điền\n"
+        notice_check += "Không được để rỗng\n" if str(event.postchangetext).__len__() == 0 else ""
+        
+        if notice_check!="":
+            FormValidation.base_master.lbl_frame_reg[label].config(text=notice_check, bootstyle='danger')
+            FormValidation.state_validate[label] = False
+            return False
+        FormValidation.base_master.lbl_frame_reg[label].config(text=notice_right, bootstyle='success')
+        FormValidation.state_validate[label] = True
+        return True
 
     @staticmethod
     @validator

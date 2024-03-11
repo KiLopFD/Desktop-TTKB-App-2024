@@ -15,6 +15,8 @@ class TableUtil:
             searchable=True,
             coldata=columns,
             rowdata=rows,
+            paginated=True,
+            autofit=True,
         )
         widget.pack(expand=YES, fill=BOTH)
         return widget

@@ -1,5 +1,5 @@
 '''
-    Lưu Ý: Phần Này Đọc Kĩ Doc Treeview, do được implement từ Treeview
+    Phần Này Đọc Kĩ Doc Treeview, do được implement từ Treeview
 '''
 from ttkbootstrap.tableview import Tableview
 from ttkbootstrap.constants import *
