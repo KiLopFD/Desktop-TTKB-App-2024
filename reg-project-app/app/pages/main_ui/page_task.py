@@ -13,7 +13,9 @@ class PageTask(tb.Panedwindow):
         super().__init__(master, **kwargs, bootstyle="info", orient="horizontal")
         self.master = master
         self.base_master = base_master
+        # Table Set Up
         self.table_task = None
+        self.table_group = None
         #----------------------------------------
         # DAO
         self.group_dao = GroupDao()
@@ -108,15 +110,19 @@ class PageTask(tb.Panedwindow):
         grade = Grade(
             mark=score,
             date=datetime.strptime(datetime.now().strftime("%m/%d/%Y"), "%m/%d/%Y"),
-            accounts=[account for account in self.selected_group_left.accounts]
+            accounts=[account for account in self.selected_group.accounts]
         )
         self.grade_dao.add(grade)
+        self.refresh_table_score_group()
     
     def get_data_score_group(self):
         if not hasattr(self, "selected_group_left"):
             self.selected_group_left = self.account_dao.get_all()
         else:
-            self.selected_group_left = self.selected_group_left.accounts
+            try:
+                self.selected_group_left = self.selected_group_left.accounts
+            except:
+                self.selected_group_left = self.selected_group.accounts
         return [
             (
                 account.id,
@@ -139,7 +145,7 @@ class PageTask(tb.Panedwindow):
             self.menu_group_left.menu.add_cascade(label=group.name, command=lambda group=group: self.action_select_group_left(group))
 
     def action_select_group_left(self, group):
-        self.selected_group_left = group
+        self.selected_group = group
         self.menu_group_left.config(text=group.name)
         
         
@@ -176,7 +182,8 @@ class PageTask(tb.Panedwindow):
 
     def on_change_tab(self, event):
         if self.nb_tab.index(self.nb_tab.select()) == 0:
-            TableUtil.built_data_onchange(self.base_master.table_fields[1]["widget"], self.get_table_data_group())
+            TableUtil.built_data_onchange(self.table_group, self.get_table_data_group())
+            return
         if self.nb_tab.index(self.nb_tab.select()) == 1:
             print("Tab 2")
             self.update_project_and_group()
@@ -279,7 +286,10 @@ class PageTask(tb.Panedwindow):
         TableUtil.built_data_onchange(self.table_task, self.get_table_data_task())
 
     def delete_all_task(self):
-        self.task_dao.delete_all()
+        # self.task_dao.delete_all()
+        for task in self.task_dao.get_all():
+            if task.account == self.base_master.selected_account:
+                self.task_dao.delete(task)
         TableUtil.built_data_onchange(self.table_task, self.get_table_data_task())
 
     def create_task(self):
@@ -434,7 +444,7 @@ class PageTask(tb.Panedwindow):
             self.group_dao.update(group)
         # Delete All Group
         self.group_dao.delete_all()
-        TableUtil.built_data_onchange(self.base_master.table_fields[1]["widget"], self.get_table_data_group())
+        TableUtil.built_data_onchange(self.table_group, self.get_table_data_group())
         # Clear Menu
         self.menu_group.menu.delete(0, "end")
         self.register_fields[0]["var"].set("Tên nhóm")
@@ -454,7 +464,7 @@ class PageTask(tb.Panedwindow):
             self.max_id_group += 1
             group = Group(name=f"Group {self.max_id_group}", accounts=[], project=None)
             self.group_dao.add(group)
-        TableUtil.built_data_onchange(self.base_master.table_fields[1]["widget"], self.get_table_data_group())
+        TableUtil.built_data_onchange(self.table_group, self.get_table_data_group())
 
     def action_register_group(self):
         if self.selected_group_right and self.selected_project:
@@ -463,7 +473,7 @@ class PageTask(tb.Panedwindow):
             self.group_dao.update(self.selected_group_right)
             self.show_group_registered()
             self.remove_project_group()
-            TableUtil.built_data_onchange(self.base_master.table_fields[1]["widget"], self.get_table_data_group())
+            TableUtil.built_data_onchange(self.table_group, self.get_table_data_group())
         else:
             print("Chưa chọn nhóm hoặc dự án")
 
@@ -522,23 +532,24 @@ class PageTask(tb.Panedwindow):
         self.lbl_frame = tb.LabelFrame(self.srcoll_frame_right, text="Danh sách nhóm", width=500,height=350, padding=10)
         self.lbl_frame.pack(fill="x", side="top", padx=3, pady=3)
         # Build Table
-        self.base_master.table_fields[1]["widget"] = TableUtil.initialize_table(self.base_master.table_fields[1]["widget"], self.lbl_frame, data=self.table_data_group)
+        self.table_group = TableUtil.initialize_table(self.table_group, self.lbl_frame, data=self.table_data_group)
         # Add Event for Table
-        self.base_master.table_fields[1]["widget"].bind_all("<<TreeviewSelect>>", self.on_select_table)
+        # self.table_group.bind_all("<<TreeviewSelect>>", self.on_select_table)
         # Event Click
-        self.base_master.table_fields[1]["widget"].bind_all("<Double-1>", self.on_double_click_table)
+        self.table_group.bind_all("<Double-1>", self.on_double_click_table)
 
     def on_double_click_table(self, event):
         if self.nb_tab.index(self.nb_tab.select()) == 0:
             print("Tab 1")
-            rows: list[TableRow]= self.base_master.table_fields[1]["widget"].get_rows(selected=True)
+            rows: list[TableRow]= self.table_group.get_rows(selected=True)
             selected_row = rows[0]._values
             self.selected_group_left = self.group_dao.get(int(selected_row[0]))
+            self.selected_group = self.selected_group_left
             print(self.selected_group_left)
             self.refresh_table_score_group()
             return
 
-        if self.nb_tab.index(self.nb_tab.select()) == 1:
+        elif self.nb_tab.index(self.nb_tab.select()) == 1:
             print("Tab 2")
             rows: list[TableRow]= self.table_task.get_rows(selected=True)
             for row in rows:
@@ -548,7 +559,7 @@ class PageTask(tb.Panedwindow):
     def on_select_table(self, event):
         # if self.nb_tab.index(self.nb_tab.select()) == 0:
         #     print("Tab 1")
-        #     rows: list[TableRow]= self.base_master.table_fields[1]["widget"].get_rows(selected=True)
+        #     rows: list[TableRow]= self.table_group.get_rows(selected=True)
         #     selected_row = rows[0]._values
         #     self.selected_group_left = self.group_dao.get(int(selected_row[0]))
         #     print(self.selected_group_left)
@@ -567,5 +578,5 @@ class PageTask(tb.Panedwindow):
         return
 
     def refresh_table(self):
-        TableUtil.built_data_onchange(self.base_master.table_fields[1]["widget"], self.get_table_data_group())
+        TableUtil.built_data_onchange(self.table_group, self.get_table_data_group())
         # TableUtil.built_data_onchange(self.table_task, self.get_table_data_task())
